@@ -54,3 +54,16 @@ Endpoint default:
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:3000`
 - Health check API: `http://localhost:3000/health`
+
+Route frontend lokal:
+
+- Beranda: `http://localhost:5173/`
+- Login: `http://localhost:5173/auth`
+- Registrasi: `http://localhost:5173/auth/register`
+- Detail postingan: `http://localhost:5173/posts/demo-post-1`
+- Notifikasi: `http://localhost:5173/notifications`
+- Profil: `http://localhost:5173/profile`
+- Teman: `http://localhost:5173/users`
+
+Jika port `5173` sedang dipakai proses lain, Vite akan memakai port berikutnya, misalnya
+`http://localhost:5174`.

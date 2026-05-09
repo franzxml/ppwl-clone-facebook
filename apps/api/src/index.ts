@@ -1,37 +1,52 @@
 import { cors } from '@elysiajs/cors'
-import { PrismaLibSql } from '@prisma/adapter-libsql'
 import { Elysia } from 'elysia'
 import { appMetadata, createHealthPayload, type ApiHealth } from '@ppwl/shared'
-import { PrismaClient } from './generated/prisma/client'
-
-const databaseUrl = process.env.DATABASE_URL ?? 'file:./prisma/dev.db'
-const adapter = new PrismaLibSql({ url: databaseUrl })
-const prisma = new PrismaClient({ adapter })
+import { prisma } from './db/prisma'
+import { authRoutes } from './routes/auth'
+import { commentRoutes } from './routes/comments'
+import { notificationRoutes } from './routes/notifications'
+import { postRoutes } from './routes/posts'
+import { profileRoutes } from './routes/profile'
+import { userRoutes } from './routes/users'
 
 const port = Number(process.env.PORT ?? 3000)
 const corsOrigin = process.env.CORS_ORIGIN ?? 'http://localhost:5173'
 
 const app = new Elysia()
   .use(cors({ origin: corsOrigin }))
+  .onError(({ code, error, set }) => {
+    if (code === 'VALIDATION') {
+      set.status = 400
+      return { error: 'Data request tidak valid.' }
+    }
+
+    console.error(error)
+    set.status = 500
+    return { error: 'Terjadi kesalahan server.' }
+  })
   .get('/', () => ({
     message: `${appMetadata.name} API`,
-    docs: '/health',
+    docs: {
+      health: '/health',
+      auth: '/auth',
+      posts: '/posts',
+      comments: '/comments',
+      notifications: '/notifications',
+      profile: '/profile',
+      users: '/users',
+    },
   }))
   .get('/health', async (): Promise<ApiHealth> => {
     await prisma.$queryRaw`SELECT 1`
 
     return createHealthPayload()
   })
-  .get('/posts', () =>
-    prisma.post.findMany({
-      include: {
-        author: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    }),
-  )
+  .use(authRoutes)
+  .use(postRoutes)
+  .use(commentRoutes)
+  .use(notificationRoutes)
+  .use(profileRoutes)
+  .use(userRoutes)
   .listen(port)
 
 console.info(
