@@ -1,8 +1,12 @@
+// [Khairunnisa] Tambah useState untuk keperluan modal detail postingan
+import { useState } from 'react'
 import { Image, Send } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { AppLayout } from '@/layouts/AppLayout'
 import type { FeedPost } from '@/types/social'
+// [Khairunnisa] Tambah import PostDetailPage dari fitur komentar & detail postingan
+import { PostDetailPage } from '@/routes/posts/PostDetailPage'
 
 type HomePageProps = {
   posts: FeedPost[]
@@ -10,6 +14,10 @@ type HomePageProps = {
 }
 
 export function HomePage({ posts, aside }: HomePageProps) {
+  // [Khairunnisa] State untuk menyimpan postingan yang dipilih, dipakai untuk buka modal
+  // Kalau selectedPost tidak null, modal akan muncul
+  const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null)
+
   return (
     <AppLayout aside={aside}>
       <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
@@ -34,7 +42,13 @@ export function HomePage({ posts, aside }: HomePageProps) {
       </div>
 
       {posts.map((post) => (
-        <article key={post.id} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        // [Khairunnisa] Tambah onClick dan cursor-pointer di article
+        // Wen, kalau mau redesign card, pastikan onClick tetap ada di sini ya
+        <article
+          key={post.id}
+          className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm cursor-pointer"
+          onClick={() => setSelectedPost(post)}
+        >
           <div className="flex items-center gap-3">
             <div className="flex size-11 items-center justify-center rounded-full bg-slate-200 font-semibold text-slate-700">
               {post.author.name.charAt(0)}
@@ -47,6 +61,13 @@ export function HomePage({ posts, aside }: HomePageProps) {
           <p className="mt-4 leading-7 text-slate-700">{post.content}</p>
         </article>
       ))}
+
+      {/* [Khairunnisa] Modal detail postingan + komentar — jangan dihapus ya Wen!
+          Modal ini muncul otomatis saat salah satu postingan diklik.
+          Kalau mau redesign card, cukup jaga onClick di article dan bagian modal ini. */}
+      {selectedPost && (
+        <PostDetailPage post={selectedPost} onClose={() => setSelectedPost(null)} />
+      )}
     </AppLayout>
   )
 }
